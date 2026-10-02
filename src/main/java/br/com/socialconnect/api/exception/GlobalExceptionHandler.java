@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import br.com.socialconnect.api.produtos.exception.EstoqueNegativoException;
+import br.com.socialconnect.api.produtos.exception.NomeProdutoDuplicadoException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +36,11 @@ public class GlobalExceptionHandler {
         List<ProblemDetail.FieldError> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> new ProblemDetail.FieldError(e.getField(), e.getDefaultMessage()))
                 .toList();
+        if (ex.getBindingResult().getFieldErrors("estoqueAtual").stream()
+                .anyMatch(e -> "EstoqueNaoNegativo".equals(e.getCode()))) {
+            return build(HttpStatus.UNPROCESSABLE_ENTITY, "estoque-negativo", "Estoque negativo",
+                    mensagem("produto.estoque.nao.negativo"), request, errors);
+        }
         return build(HttpStatus.BAD_REQUEST, "validacao", "Erro de validação",
                 mensagem("erro.validacao"), request, errors);
     }
@@ -64,6 +71,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleCpfDuplicado(CpfDuplicadoException ex, WebRequest request) {
         return build(HttpStatus.CONFLICT, "cpf-duplicado", "CPF já cadastrado",
                 mensagem("cpf.duplicado", ex.getCpf()), request, List.of());
+    }
+
+    @ExceptionHandler(NomeProdutoDuplicadoException.class)
+    public ResponseEntity<ProblemDetail> handleNomeProdutoDuplicado(NomeProdutoDuplicadoException ex, WebRequest request) {
+        return build(HttpStatus.CONFLICT, "nome-produto-duplicado", "Nome de produto já cadastrado",
+                ex.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(EstoqueNegativoException.class)
+    public ResponseEntity<ProblemDetail> handleEstoqueNegativo(EstoqueNegativoException ex, WebRequest request) {
+        return build(HttpStatus.UNPROCESSABLE_ENTITY, "estoque-negativo", "Estoque negativo",
+                ex.getMessage(), request, List.of());
     }
 
     // 404 - recurso não encontrado

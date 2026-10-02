@@ -1,30 +1,31 @@
 # SocialConnect API
 
-> API RESTful de gestão para instituições sociais (ONGs, bancos de alimentos,
-> CRAS, abrigos). Conecta doadores, voluntários e beneficiários.
+API REST para gestão de beneficiários, doadores, doações e produtos de uma ONG.
 
-**Disciplina:** ITE005 — Tópicos Especiais em Sistemas para Internet III
-**Stack:** Java 21 · Spring Boot 4.1.1 · JPA · H2 (dev) · PostgreSQL (prod)
+## Executar
 
----
+Requer Java 21+ e Maven 3.9+. Execute `mvn clean compile` e `mvn spring-boot:run`.
+O ambiente local usa H2 em memória; Flyway cria o esquema ao iniciar.
+Swagger UI: http://localhost:8080/swagger-ui.html.
 
-## Como Rodar
+## Produtos
 
-### Pré-requisitos
+| Método | Rota | Uso |
+| --- | --- | --- |
+| GET | `/api/v1/produtos` | Lista paginada; filtros `nome` e `categoria` |
+| GET | `/api/v1/produtos/{id_produto}` | Consulta por ID |
+| POST | `/api/v1/produtos` | Cadastro (201 e `Location`) |
+| PUT | `/api/v1/produtos/{id_produto}` | Substituição total |
+| DELETE | `/api/v1/produtos/{id_produto}` | Exclusão (204) |
 
-- JDK 21 LTS ([Adoptium](https://adoptium.net/))
-- Maven 3.9+ (ou use o wrapper: `./mvnw`)
-- IDE: IntelliJ IDEA (recomendado) ou VS Code
+Exemplo de corpo para POST e PUT:
 
-### Passos
+```json
+{"nome":"Arroz 5kg","categoria":"ALIMENTO","estoqueAtual":3,"estoqueMinimo":10,"unidadeMedida":"unidade"}
+```
 
-```bash
-# 1. Clone o repositório
-git clone <url-do-repo>
-cd socialconnect-api
+`estoqueBaixo` é calculado quando `estoqueAtual < estoqueMinimo`. Nome duplicado retorna 409; estoque atual negativo retorna 422; ID ausente retorna 404. Os erros usam Problem Details.
 
-# 2. Compile o projeto
-mvn clean compile
+## Testes
 
-# 3. Rode a aplicação
-mvn spring-boot:run
+Execute `mvn test` para rodar os testes unitários de serviço e validação.

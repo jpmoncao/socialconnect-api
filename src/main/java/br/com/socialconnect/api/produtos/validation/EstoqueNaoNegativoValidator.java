@@ -1,0 +1,10 @@
+package br.com.socialconnect.api.produtos.validation;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+
+public class EstoqueNaoNegativoValidator implements ConstraintValidator<EstoqueNaoNegativo, Integer> {
+    @Override public boolean isValid(Integer valor, ConstraintValidatorContext contexto) {
+        return valor == null || valor >= 0;
+    }
+}
